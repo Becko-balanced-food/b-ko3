@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Béčko – Víc než jen čísla</title>
+    <!-- Tailwind CSS CDN pro moderní a čistý design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        beckoGreen: '#10B981',
+                        beckoPink: '#EC4899',
+                        beckoDark: '#1F2937'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-beckoDark font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- HLAVIČKA -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <span class="bg-beckoPink text-white font-bold px-3 py-1 rounded-xl text-xl">B</span>
+                <h1 class="text-2xl font-black tracking-tight text-gray-800">Béčko</h1>
+            </div>
+            <nav class="flex space-x-6 text-sm font-medium">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="text-beckoPink border-b-2 border-beckoPink pb-1 transition">Přehled</button>
+                <button onclick="switchTab('recipes')" id="nav-recipes" class="text-gray-500 hover:text-beckoPink pb-1 transition">Recepty</button>
+                <button onclick="switchTab('ai-coach')" id="nav-ai-coach" class="text-gray-500 hover:text-beckoPink pb-1 transition">AI Asistent</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- HLAVNÍ OBSAH -->
+    <main class="flex-grow max-w-4xl mx-auto px-4 py-6 w-full">
+
+        <!-- 1. ZÁLOŽKA: DASHBOARD / PŘEHLED -->
+        <section id="tab-dashboard" class="space-y-6">
+            <!-- Profilová karta / Cíle -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <span class="text-xs uppercase tracking-wider font-semibold text-beckoPink bg-pink-50 px-2.5 py-1 rounded-full">Osobní profil</span>
+                    <h2 id="user-greeting" class="text-xl font-bold mt-2">Ahoj, uživateli! 👋</h2>
+                    <p class="text-sm text-gray-500" id="user-details-text">Cílová hmotnost: <span class="font-semibold text-gray-700">65 kg</span> | Věk: <span class="font-semibold text-gray-700">25 let</span></p>
+                </div>
+                <button onclick="openProfileModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold px-4 py-2 rounded-xl transition">Upravit profil</button>
+            </div>
+
+            <!-- Kalorický přehled -->
+            <div class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-6 rounded-2xl shadow-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg">Dnešní bilance kalorií</h3>
+                    <span id="calories-status" class="text-xs bg-white/20 px-3 py-1 rounded-full">V normě</span>
+                </div>
+                <div class="grid grid-cols-3 gap-4 text-center my-4">
+                    <div class="bg-white/10 p-3 rounded-xl">
+                        <p class="text-xs text-emerald-100">Cíl</p>
+                        <p id="target-kcal" class="text-xl font-black">2000 kcal</p>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded-xl">
+                        <p class="text-xs text-emerald-100">Přijato</p>
+                        <p id="consumed-kcal" class="text-xl font-black">0 kcal</p>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded-xl">
+                        <p class="text-xs text-emerald-100">Zbývá</p>
+                        <p id="remaining-kcal" class="text-xl font-black">2000 kcal</p>
+                    </div>
+                </div>
+                <!-- Progress bar -->
+                <div class="w-full bg-black/20 h-3 rounded-full overflow-hidden">
+                    <div id="calorie-progress" class="bg-white h-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Přidat jídlo -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-lg mb-4">Zapsat jídlo</h3>
+                <form id="food-form" onsubmit="addFood(event)" class="flex flex-col sm:flex-row gap-3">
+                    <input type="text" id="food-name" placeholder="Název jídla (např. Ovesná kaše)" required class="flex-grow px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-beckoGreen">
+                    <input type="number" id="food-kcal" placeholder="Kalorie (kcal)" required class="w-full sm:w-40 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-beckoGreen">
+                    <button type="submit" class="bg-beckoGreen hover:bg-emerald-600 text-white font-semibold px-6 py-2.5 rounded-xl transition">Přidat</button>
+                </form>
+                <div class="mt-4">
+                    <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Dnešní položky:</h4>
+                    <ul id="food-list" class="space-y-2">
+                        <li class="text-sm text-gray-400 italic">Zatím žádné zapsané jídlo.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. ZÁLOŽKA: RECEPTY -->
+        <section id="tab-recipes" class="hidden space-y-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-bold">Komunitní recepty</h2>
+                <button onclick="alert('Zde se otevře formulář pro sdílení nového receptu!')" class="bg-beckoPink hover:bg-pink-600 text-white text-sm font-semibold px-4 py-2 rounded-xl transition">+ Přidat recept</button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="recipes-grid">
+                <!-- Recept 1 -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs bg-emerald-50 text-beckoGreen font-semibold px-2.5 py-1 rounded-full">Zdravý oběd</span>
+                        <h3 class="font-bold text-lg mt-2">Fitness kuřecí wrap s avokádem</h3>
+                        <p class="text-sm text-gray-500 mt-1">Rychlý, vysokoproteinová tortilla plná čerstvé zeleniny.</p>
+                    </div>
+                    <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-100">
+                        <span class="text-xs text-gray-400">🔥 450 kcal | 35g bílkovin</span>
+                        <button onclick="likeRecipe(this)" class="text-beckoPink font-medium text-sm flex items-center space-x-1 hover:scale-105 transition">
+                            ❤️ <span class="like-count">14</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Recept 2 -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs bg-pink-50 text-beckoPink font-semibold px-2.5 py-1 rounded-full">Snídaně</span>
+                        <h3 class="font-bold text-lg mt-2">Nadýchané banánové palačinky</h3>
+                        <p class="text-sm text-gray-500 mt-1">Bez přidaného cukru, hotové za 10 minut.</p>
+                    </div>
+                    <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-100">
+                        <span class="text-xs text-gray-400">🔥 320 kcal | 18g bílkovin</span>
+                        <button onclick="likeRecipe(this)" class="text-beckoPink font-medium text-sm flex items-center space-x-1 hover:scale-105 transition">
+                            ❤️ <span class="like-count">29</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. ZÁLOŽKA: AI ASISTENT PRO MENTÁLNÍ ZDRAVÍ -->
+        <section id="tab-ai-coach" class="hidden space-y-4">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[550px]">
+                <div class="border-b pb-4 mb-4 flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-beckoPink text-white flex items-center justify-center font-bold">AI</div>
+                    <div>
+                        <h3 class="font-bold">Béčko AI Kouč</h3>
+                        <p class="text-xs text-emerald-600 font-medium">● Online – Připraven podpořit tvou mysl</p>
+                    </div>
+                </div>
+
+                <!-- Chat okno -->
+                <div id="chat-messages" class="flex-grow overflow-y-auto space-y-3 pr-2 text-sm">
+                    <div class="bg-gray-100 p-3 rounded-2xl rounded-tl-none max-w-[80%] text-gray-700">
+                        Ahoj! Jsem tvůj virtuální průvodce v Béčku. Jak se dnes cítíš? Máš za sebou těžký den, nebo potřebuješ povzbudit s motivací?
+                    </div>
+                </div>
+
+                <!-- Vstup pro zprávu -->
+                <div class="mt-4 pt-3 border-t border-gray-100 flex gap-2">
+                    <input type="text" id="chat-input" placeholder="Napiš AI koučovi..." class="flex-grow px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-beckoPink text-sm" onkeypress="handleChatPress(event)">
+                    <button onclick="sendChatMessage()" class="bg-beckoPink hover:bg-pink-600 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition">Odeslat</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODÁLNÍ OKNO PRO PROFIL -->
+    <div id="profile-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl max-w-md w-full space-y-4 shadow-xl">
+            <h3 class="text-lg font-bold">Nastavení osobního profilu</h3>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Cílové kalorie (kcal)</label>
+                <input type="number" id="modal-target" value="2000" class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:border-beckoGreen">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Věk</label>
+                <input type="number" id="modal-age" value="25" class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:border-beckoGreen">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Cílová hmotnost (kg)</label>
+                <input type="number" id="modal-weight" value="65" class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:border-beckoGreen">
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="closeProfileModal()" class="px-4 py-2 text-gray-500 text-sm font-semibold">Zrušit</button>
+                <button onclick="saveProfile()" class="bg-beckoGreen text-white px-5 py-2 rounded-xl text-sm font-semibold">Uložit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIKA -->
+    <script>
+        // Stav aplikace
+        let targetCalories = 2000;
+        let consumedCalories = 0;
+        let foodItems = [];
+
+        // Přepínání záložek
+        function switchTab(tabId) {
+            ['dashboard', 'recipes', 'ai-coach'].forEach(id => {
+                document.getElementById(`tab-${id}`).classList.add('hidden');
+                document.getElementById(`nav-${id}`).className = "text-gray-500 hover:text-beckoPink pb-1 transition";
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`nav-${tabId}`).className = tabId === 'ai-coach' || tabId === 'recipes' 
+                ? "text-beckoPink border-b-2 border-beckoPink pb-1 transition font-semibold"
+                : "text-beckoPink border-b-2 border-beckoPink pb-1 transition font-semibold";
+        }
+
+        // Přidání jídla
+        function addFood(event) {
+            event.preventDefault();
+            const name = document.getElementById('food-name').value;
+            const kcal = parseInt(document.getElementById('food-kcal').value);
+
+            if (!name || isNaN(kcal)) return;
+
+            foodItems.push({ name, kcal });
+            consumedCalories += kcal;
+
+            updateDashboard();
+            document.getElementById('food-form').reset();
+        }
+
+        // Aktualizace UI přehledu
+        function updateDashboard() {
+            document.getElementById('target-kcal').innerText = `${targetCalories} kcal`;
+            document.getElementById('consumed-kcal').innerText = `${consumedCalories} kcal`;
+            
+            let remaining = targetCalories - consumedCalories;
+            document.getElementById('remaining-kcal').innerText = `${remaining} kcal`;
+
+            let progress = Math.min((consumedCalories / targetCalories) * 100, 100);
+            document.getElementById('calorie-progress').style.width = `${progress}%`;
+
+            const listEl = document.getElementById('food-list');
+            if (foodItems.length === 0) {
+                listEl.innerHTML = `<li class="text-sm text-gray-400 italic">Zatím žádné zapsané jídlo.</li>`;
+            } else {
+                listEl.innerHTML = foodItems.map((item, index) => `
+                    <li class="flex justify-between items-center bg-gray-50 px-4 py-2 rounded-xl text-sm">
+                        <span class="font-medium text-gray-700">${item.name}</span>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-emerald-600 font-semibold">+${item.kcal} kcal</span>
+                            <button onclick="removeFood(${index})" class="text-gray-400 hover:text-red-500 text-xs">✕</button>
+                        </div>
+                    </li>
+                `).join('');
+            }
+        }
+
+        // Odstranění jídla
+        function removeFood(index) {
+            consumedCalories -= foodItems[index].kcal;
+            foodItems.splice(index, 1);
+            updateDashboard();
+        }
+
+        // Lajkování receptů
+        function likeRecipe(btn) {
+            const countSpan = btn.querySelector('.like-count');
+            let count = parseInt(countSpan.innerText);
+            countSpan.innerText = count + 1;
+            btn.classList.add('scale-125');
+            setTimeout(() => btn.classList.remove('scale-125'), 200);
+        }
+
+        // Modální okno profilu
+        function openProfileModal() {
+            document.getElementById('profile-modal').classList.remove('hidden');
+        }
+        function closeProfileModal() {
+            document.getElementById('profile-modal').classList.add('hidden');
+        }
+        function saveProfile() {
+            targetCalories = parseInt(document.getElementById('modal-target').value) || 2000;
+            let age = document.getElementById('modal-age').value;
+            let weight = document.getElementById('modal-weight').value;
+            
+            document.getElementById('user-details-text').innerHTML = `Cílová hmotnost: <span class="font-semibold text-gray-700">${weight} kg</span> | Věk: <span class="font-semibold text-gray-700">${age} let</span>`;
+            closeProfileModal();
+            updateDashboard();
+        }
+
+        // AI Chat simulace
+        function handleChatPress(e) {
+            if (e.key === 'Enter') sendChatMessage();
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const chatMessages = document.getElementById('chat-messages');
+
+            // Zpráva uživatele
+            chatMessages.innerHTML += `
+                <div class="flex justify-end">
+                    <div class="bg-beckoPink text-white p-3 rounded-2xl rounded-tr-none max-w-[80%]">${text}</div>
+                </div>
+            `;
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Simulace odpovědi AI po 1 sekundě
+            setTimeout(() => {
+                let aiReply = "Rozumím ti. Změna životního stylu je maraton, ne sprint. Hlavně na sebe buď hodný/á a nezapomeň slavit i ty nejmenší pokroky!";
+                if (text.toLowerCase().includes('hlad') || text.toLowerCase().includes('nejím')) {
+                    aiReply = "Když pociťuješ hlad, zkus se napít sklenice vody nebo sáhnout po bílkovinové svačině (např. tvaroh či ořechy). Tělo si zvyká.";
+                } else if (text.toLowerCase().includes('stres') || text.toLowerCase().includes('špatně')) {
+                    aiReply = "Mrzí mě, že prožíváš stres. Zkus se teď zhluboka nadechnout a vydechnout. Neúspěch v jídle nebo denní pauza tě nedefinují.";
+                }
+
+                chatMessages.innerHTML += `
+                    <div class="flex justify-start">
+                        <div class="bg-gray-100 p-3 rounded-2xl rounded-tl-none max-w-[80%] text-gray-700">${aiReply}</div>
+                    </div>
+                `;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
